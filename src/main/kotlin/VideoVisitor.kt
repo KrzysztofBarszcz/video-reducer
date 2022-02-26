@@ -14,6 +14,7 @@ class VideoVisitor(private val rootDirectory: Path, private val outputDir: Path)
         if (!Files.exists(outputPath)) {
             println("Processing $file")
             val conversionProcess = ProcessBuilder("ffmpeg", "-i", "$file", "-b", "1000000", "$outputPath")
+                .inheritIO()
                 .start()
             conversionProcess.waitFor()
         } else {
