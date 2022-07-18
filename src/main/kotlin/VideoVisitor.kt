@@ -1,18 +1,21 @@
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.lang.RuntimeException
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 
+
 class VideoVisitor(private val rootDirectory: Path, private val outputDir: Path) : FileVisitor<Path> {
+    var logger: Logger = LoggerFactory.getLogger(VideoVisitor::class.java)
 
     override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
         val outputPath = file?.let { createOutputPath(it) } ?: throw RuntimeException("Dir is null")
 
         if (!Files.exists(outputPath)) {
-            println("Processing $file")
+            logger.info("Processing $file")
             val conversionProcess = ProcessBuilder("ffmpeg", "-i", "$file", "-b", "1000000", "$outputPath")
                 .inheritIO()
                 .start()
@@ -24,15 +27,14 @@ class VideoVisitor(private val rootDirectory: Path, private val outputDir: Path)
     }
 
     override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?): FileVisitResult {
-        println("Visits ${dir.toString()}")
+        logger.info("Visits ${dir.toString()}")
         val outputPath = dir?.let { createOutputPath(it) } ?: throw RuntimeException("Dir is null")
         if (!Files.exists(outputPath)) {
             Files.createDirectory(outputPath)
-            println("$outputPath created")
+            logger.info("$outputPath created")
         } else {
-            println("$outputPath exists")
+            logger.info("$outputPath exists")
         }
-
         return FileVisitResult.CONTINUE
     }
 
@@ -41,7 +43,7 @@ class VideoVisitor(private val rootDirectory: Path, private val outputDir: Path)
     }
 
     override fun postVisitDirectory(dir: Path?, exc: IOException?): FileVisitResult {
-        println("Finished ${dir.toString()}")
+        logger.info("Finished ${dir.toString()}")
         return FileVisitResult.CONTINUE
     }
 
